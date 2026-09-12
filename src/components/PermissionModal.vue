@@ -12,6 +12,12 @@ import { toast } from '../composables/toast'
 import { confirmDialog } from '../composables/confirm'
 import { formatDateTime } from '../utils/datetime'
 import AppModal from './AppModal.vue'
+import AppSelect, { type AppSelectOption } from './AppSelect.vue'
+
+const roleOptions: AppSelectOption<CategoryPermissionRole>[] = [
+  { value: 'view', label: '可查看（view）' },
+  { value: 'edit', label: '可编辑（edit）' },
+]
 
 const props = defineProps<{
   open: boolean
@@ -214,11 +220,14 @@ function roleLabel(role: CategoryPermissionRole): string {
               </p>
             </div>
             <div class="field">
-              <label for="grant-role">权限</label>
-              <select id="grant-role" v-model="form.role">
-                <option value="view">可查看（view）</option>
-                <option value="edit">可编辑（edit）</option>
-              </select>
+              <label>权限</label>
+              <AppSelect
+                v-model="form.role"
+                block
+                :options="roleOptions"
+                placeholder="选择权限"
+                aria-label="权限级别"
+              />
             </div>
             <button type="submit" class="btn btn-primary grant-submit" :disabled="grantSubmitting">
               {{ grantSubmitting ? '授权中…' : '查找并授权' }}

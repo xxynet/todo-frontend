@@ -425,9 +425,7 @@ a {
 
 .field input,
 .field textarea,
-.field select,
-.search-input,
-.sort-select {
+.search-input {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid var(--border);
@@ -448,9 +446,7 @@ a {
 
 .field input:focus,
 .field textarea:focus,
-.field select:focus,
-.search-input:focus,
-.sort-select:focus {
+.search-input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
@@ -782,9 +778,159 @@ a {
 }
 
 .sort-select {
-  width: auto;
-  min-width: 120px;
+  min-width: 140px;
+}
+
+/* ============ Select（shadcn 风格） ============ */
+.select-root {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.select-block {
+  width: 100%;
+}
+
+.select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.select-trigger:hover:not(:disabled) {
+  border-color: #cdd4e2;
+}
+
+.select-trigger:focus-visible,
+.select-root--open .select-trigger {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.select-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-value {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-value.is-placeholder {
+  color: var(--text-muted);
+}
+
+.select-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.select-root--open .select-chevron {
+  transform: rotate(180deg);
+}
+
+.select-content {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 130;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(340px, calc(100vw - 32px));
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  animation: select-in 0.15s ease;
+}
+
+.select-content--up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+@keyframes select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.select-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-item.is-highlighted {
+  background: #f2f4fa;
+}
+
+.select-item.is-selected {
+  font-weight: 500;
+}
+
+.select-item.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.select-item-check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 /* ============ 待办卡片 ============ */

@@ -13,6 +13,7 @@ import {
 } from '../utils/datetime'
 import AppModal from './AppModal.vue'
 import TagInput from './TagInput.vue'
+import AppSelect, { type AppSelectOption } from './AppSelect.vue'
 
 const props = defineProps<{
   open: boolean
@@ -24,6 +25,11 @@ const emit = defineEmits<{ close: []; saved: [todo: Todo] }>()
 
 const session = useSession()
 const isEdit = computed(() => props.todo !== null)
+
+const categoryOptions = computed<AppSelectOption<string>[]>(() => [
+  { value: 'none', label: '未分类（仅自己可见）' },
+  ...props.categories.map((category) => ({ value: String(category.id), label: category.name })),
+])
 
 const form = reactive({
   title: '',
@@ -181,13 +187,14 @@ async function patchExisting(): Promise<Todo | null> {
 
       <div class="form-row">
         <div class="field">
-          <label for="todo-category">分类</label>
-          <select id="todo-category" v-model="form.categoryId">
-            <option value="none">未分类（仅自己可见）</option>
-            <option v-for="category in categories" :key="category.id" :value="String(category.id)">
-              {{ category.name }}
-            </option>
-          </select>
+          <label>分类</label>
+          <AppSelect
+            v-model="form.categoryId"
+            block
+            :options="categoryOptions"
+            placeholder="选择分类"
+            aria-label="分类"
+          />
         </div>
         <div class="field field-checkbox">
           <label class="checkbox-label">

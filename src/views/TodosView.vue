@@ -10,6 +10,7 @@ import { confirmDialog } from '../composables/confirm'
 import { parseApiDate } from '../utils/datetime'
 import TodoCard from '../components/TodoCard.vue'
 import TodoFormModal from '../components/TodoFormModal.vue'
+import AppSelect, { type AppSelectOption } from '../components/AppSelect.vue'
 import {
   Plus,
   Refresh,
@@ -24,6 +25,14 @@ const PAGE_SIZE = 10
 
 type StatusFilter = 'all' | 'active' | 'done'
 type SortKey = 'created_desc' | 'created_asc' | 'schedule_asc' | 'schedule_desc' | 'title_asc'
+
+const sortOptions: AppSelectOption<SortKey>[] = [
+  { value: 'created_desc', label: '最新创建' },
+  { value: 'created_asc', label: '最早创建' },
+  { value: 'schedule_asc', label: '日程最早' },
+  { value: 'schedule_desc', label: '日程最晚' },
+  { value: 'title_asc', label: '标题 A–Z' },
+]
 
 const route = useRoute()
 
@@ -252,13 +261,7 @@ async function removeTodo(todo: Todo): Promise<void> {
             placeholder="搜索标题、描述、标签或分类…"
           />
         </div>
-        <select v-model="sortKey" class="sort-select" aria-label="任务排序">
-          <option value="created_desc">最新创建</option>
-          <option value="created_asc">最早创建</option>
-          <option value="schedule_asc">日程最早</option>
-          <option value="schedule_desc">日程最晚</option>
-          <option value="title_asc">标题 A–Z</option>
-        </select>
+        <AppSelect v-model="sortKey" class="sort-select" :options="sortOptions" aria-label="任务排序" />
         <button type="button" class="btn" :disabled="loading" @click="refreshAll">
           <Refresh class="icon" />
           刷新
