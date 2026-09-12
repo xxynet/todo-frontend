@@ -11,13 +11,14 @@ import { formatRole, getUser } from '../api/users'
 import { toast } from '../composables/toast'
 import { confirmDialog } from '../composables/confirm'
 import { formatDateTime } from '../utils/datetime'
+import { t } from '../i18n'
 import AppModal from './AppModal.vue'
 import AppSelect, { type AppSelectOption } from './AppSelect.vue'
 
-const roleOptions: AppSelectOption<CategoryPermissionRole>[] = [
-  { value: 'view', label: '可查看（view）' },
-  { value: 'edit', label: '可编辑（edit）' },
-]
+const roleOptions = computed<AppSelectOption<CategoryPermissionRole>[]>(() => [
+  { value: 'view', label: t('permissions.roleView') },
+  { value: 'edit', label: t('permissions.roleEdit') },
+])
 
 const props = defineProps<{
   open: boolean
@@ -42,7 +43,7 @@ const lookup = reactive<{
 }>({ status: 'idle', user: null, message: '', userId: '' })
 
 const lookupLabel = computed(() => {
-  if (lookup.status === 'loading') return '查询中…'
+  if (lookup.status === 'loading') return t('permissions.lookup.loading')
   if (lookup.status === 'found' && lookup.user) {
     return `${lookup.user.nickname}（${formatRole(lookup.user.role)}）`
   }
@@ -91,7 +92,7 @@ function onUserIdInput(): void {
 async function findUser(): Promise<User | null> {
   const userId = form.userId.trim()
   if (!userId) {
-    grantError.value = '请输入要授权的用户 ID'
+    grantError.value = t('permissions.error.userIdRequired')
     return null
   }
   lookup.userId = userId
@@ -105,7 +106,9 @@ async function findUser(): Promise<User | null> {
     lookup.user = null
     lookup.status = 'error'
     lookup.message =
-      error instanceof ApiError && error.status === 404 ? '未找到该用户，请确认用户 ID' : getErrorMessage(error)
+      error instanceof ApiError && error.status === 404
+        ? t('permissions.lookup.notFound')
+        : getErrorMessage(error)
     return null
   }
 }
@@ -121,7 +124,12 @@ async function grant(): Promise<void> {
       return
     }
     await setPermission(props.category.id, user.id, form.role)
-    toast.success(`已授权 ${user.nickname}（${form.role === 'edit' ? '可编辑' : '可查看'}）`)
+    toast.success(
+      t('permissions.granted', {
+        nickname: user.nickname,
+        role: form.role === 'edit' ? t('permissions.roleEditShort') : t('permissions.roleViewShort'),
+      }),
+    )
     form.userId = ''
     form.role = 'view'
     lookup.status = 'idle'
@@ -137,15 +145,15 @@ async function grant(): Promise<void> {
 async function revoke(permission: CategoryPermission): Promise<void> {
   if (!props.category) return
   const confirmed = await confirmDialog({
-    title: '移除协作权限',
-    message: `确定移除用户 ${permission.user_id} 对「${props.category.name}」的访问权限吗？其对该分类共享待办的访问将立即失效。`,
-    confirmText: '移除',
+    title: t('permissions.revokeTitle'),
+    message: t('permissions.revokeMessage', { userId: permission.user_id, name: props.category.name }),
+    confirmText: t('permissions.remove'),
     danger: true,
   })
   if (!confirmed) return
   try {
     await deletePermission(props.category.id, permission.user_id)
-    toast.success('权限已移除')
+    toast.success(t('permissions.revoked'))
     await loadPermissions()
   } catch (error) {
     toast.error(getErrorMessage(error))
@@ -153,33 +161,31 @@ async function revoke(permission: CategoryPermission): Promise<void> {
 }
 
 function roleLabel(role: CategoryPermissionRole): string {
-  return role === 'edit' ? '可编辑' : '可查看'
+  return role === 'edit' ? t('permissions.roleEditShort') : t('permissions.roleViewShort')
 }
 </script>
 
 <template>
   <AppModal
     :open="open"
-    :title="`协作权限 · ${category?.name ?? ''}`"
+    :title="t('permissions.title', { name: category?.name ?? '' })"
     width="640px"
     @close="emit('close')"
   >
     <div class="permission-panel">
-      <p class="panel-hint">
-        被授权的用户可以在该分类下查看（view）或管理（edit）共享待办；分类本身的创建、重命名、删除仅管理员可操作。
-      </p>
+      <p class="panel-hint">{{ t('permissions.hint') }}</p>
 
       <section class="permission-list">
-        <h4>已授权用户</h4>
-        <div v-if="loading" class="muted">加载中…</div>
+        <h4>{{ t('permissions.authorizedTitle') }}</h4>
+        <div v-if="loading" class="muted">{{ t('common.loading') }}</div>
         <div v-else-if="listError" class="form-banner banner-error">{{ listError }}</div>
-        <div v-else-if="permissions.length === 0" class="empty-line">暂未授权任何用户</div>
+        <div v-else-if="permissions.length === 0" class="empty-line">{{ t('permissions.empty') }}</div>
         <table v-else class="table">
           <thead>
             <tr>
-              <th>用户 ID</th>
-              <th>权限</th>
-              <th>授权时间</th>
+              <th>{{ t('permissions.colUser') }}</th>
+              <th>{{ t('permissions.colRole') }}</th>
+              <th>{{ t('permissions.colGrantedAt') }}</th>
               <th class="table-actions"></th>
             </tr>
           </thead>
@@ -194,7 +200,7 @@ function roleLabel(role: CategoryPermissionRole): string {
               <td class="muted">{{ formatDateTime(permission.created_at) }}</td>
               <td class="table-actions">
                 <button type="button" class="btn btn-sm btn-danger-outline" @click="revoke(permission)">
-                  移除
+                  {{ t('permissions.remove') }}
                 </button>
               </td>
             </tr>
@@ -203,16 +209,16 @@ function roleLabel(role: CategoryPermissionRole): string {
       </section>
 
       <section class="permission-grant">
-        <h4>添加授权</h4>
+        <h4>{{ t('permissions.addTitle') }}</h4>
         <form class="grant-form" novalidate @submit.prevent="grant">
           <div class="grant-fields">
             <div class="field">
-              <label for="grant-user">用户 ID</label>
+              <label for="grant-user">{{ t('permissions.colUser') }}</label>
               <input
                 id="grant-user"
                 v-model="form.userId"
                 type="text"
-                placeholder="例如 caleb"
+                :placeholder="t('placeholder.userId')"
                 @input="onUserIdInput"
               />
               <p v-if="lookup.status !== 'idle'" class="field-hint" :class="{ 'lookup-error': lookup.status === 'error' }">
@@ -220,17 +226,17 @@ function roleLabel(role: CategoryPermissionRole): string {
               </p>
             </div>
             <div class="field">
-              <label>权限</label>
+              <label>{{ t('permissions.roleLabel') }}</label>
               <AppSelect
                 v-model="form.role"
                 block
                 :options="roleOptions"
-                placeholder="选择权限"
-                aria-label="权限级别"
+                :placeholder="t('permissions.rolePlaceholder')"
+                :aria-label="t('permissions.roleAria')"
               />
             </div>
             <button type="submit" class="btn btn-primary grant-submit" :disabled="grantSubmitting">
-              {{ grantSubmitting ? '授权中…' : '查找并授权' }}
+              {{ grantSubmitting ? t('permissions.granting') : t('permissions.grant') }}
             </button>
           </div>
           <p v-if="grantError" class="field-error">{{ grantError }}</p>

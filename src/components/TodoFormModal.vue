@@ -11,6 +11,7 @@ import {
   sameInstant,
   toIsoDateTime,
 } from '../utils/datetime'
+import { t } from '../i18n'
 import AppModal from './AppModal.vue'
 import TagInput from './TagInput.vue'
 import AppSelect, { type AppSelectOption } from './AppSelect.vue'
@@ -27,7 +28,7 @@ const session = useSession()
 const isEdit = computed(() => props.todo !== null)
 
 const categoryOptions = computed<AppSelectOption<string>[]>(() => [
-  { value: 'none', label: '未分类（仅自己可见）' },
+  { value: 'none', label: t('todoForm.uncategorized') },
   ...props.categories.map((category) => ({ value: String(category.id), label: category.name })),
 ])
 
@@ -76,16 +77,16 @@ function validate(): boolean {
   errors.schedule = ''
   const title = form.title.trim()
   if (!title) {
-    errors.title = '请输入标题'
+    errors.title = t('todoForm.error.titleRequired')
   } else if (title.length > 200) {
-    errors.title = '标题不能超过 200 个字符'
+    errors.title = t('todoForm.error.titleLong')
   }
   if (form.endAt && !form.startAt) {
-    errors.schedule = '填写结束时间时，必须同时填写开始时间'
+    errors.schedule = t('todoForm.error.endNeedsStart')
   } else if (form.startAt && form.endAt) {
     const start = new Date(form.startAt).getTime()
     const end = new Date(form.endAt).getTime()
-    if (end < start) errors.schedule = '结束时间不能早于开始时间'
+    if (end < start) errors.schedule = t('todoForm.error.endBeforeStart')
   }
   return !errors.title && !errors.schedule
 }
@@ -102,10 +103,10 @@ async function submit(): Promise<void> {
   try {
     const saved = isEdit.value ? await patchExisting() : await createNew()
     if (saved !== null) {
-      toast.success(isEdit.value ? '待办已更新' : '待办已创建')
+      toast.success(isEdit.value ? t('todoForm.updated') : t('todoForm.created'))
       emit('saved', saved)
     } else {
-      toast.info('内容没有变化')
+      toast.info(t('todoForm.noChanges'))
       emit('close')
     }
   } catch (error) {
@@ -117,7 +118,7 @@ async function submit(): Promise<void> {
 
 async function createNew(): Promise<Todo> {
   const me = session.user.value
-  if (!me) throw new ApiError(0, '登录状态已失效，请重新登录')
+  if (!me) throw new ApiError(0, t('errors.sessionExpired'))
   return createTodo({
     user_id: me.id,
     title: form.title.trim(),
@@ -158,74 +159,76 @@ async function patchExisting(): Promise<Todo | null> {
 </script>
 
 <template>
-  <AppModal :open="open" :title="isEdit ? '编辑待办' : '新建待办'" width="600px" @close="emit('close')">
+  <AppModal :open="open" :title="isEdit ? t('todoForm.editTitle') : t('todoForm.createTitle')" width="600px" @close="emit('close')">
     <form class="form" novalidate @submit.prevent="submit">
       <div v-if="formError" class="form-banner banner-error">{{ formError }}</div>
 
       <div class="field">
-        <label for="todo-title">标题 <span class="required">*</span></label>
+        <label for="todo-title">{{ t('todoForm.titleLabel') }} <span class="required">*</span></label>
         <input
           id="todo-title"
           v-model="form.title"
           type="text"
           maxlength="200"
-          placeholder="要做什么？"
+          :placeholder="t('todoForm.titlePlaceholder')"
           :class="{ invalid: errors.title }"
         />
         <p v-if="errors.title" class="field-error">{{ errors.title }}</p>
       </div>
 
       <div class="field">
-        <label for="todo-description">描述</label>
+        <label for="todo-description">{{ t('todoForm.descriptionLabel') }}</label>
         <textarea
           id="todo-description"
           v-model="form.description"
           rows="3"
-          placeholder="补充说明（可选）"
+          :placeholder="t('todoForm.descriptionPlaceholder')"
         ></textarea>
       </div>
 
       <div class="form-row">
         <div class="field">
-          <label>分类</label>
+          <label>{{ t('todoForm.categoryLabel') }}</label>
           <AppSelect
             v-model="form.categoryId"
             block
             :options="categoryOptions"
-            placeholder="选择分类"
-            aria-label="分类"
+            :placeholder="t('todoForm.categoryPlaceholder')"
+            :aria-label="t('todoForm.categoryLabel')"
           />
         </div>
         <div class="field field-checkbox">
           <label class="checkbox-label">
             <input v-model="form.completed" type="checkbox" />
-            <span>标记为已完成</span>
+            <span>{{ t('todoForm.completedLabel') }}</span>
           </label>
         </div>
       </div>
 
       <div class="field">
-        <label>标签</label>
-        <TagInput v-model="form.tags" placeholder="输入标签后回车，最多 20 个" />
+        <label>{{ t('todoForm.tagsLabel') }}</label>
+        <TagInput v-model="form.tags" :placeholder="t('todoForm.tagsPlaceholder')" />
       </div>
 
       <div class="form-row">
         <div class="field">
-          <label for="todo-start">开始时间</label>
+          <label for="todo-start">{{ t('todoForm.startLabel') }}</label>
           <input id="todo-start" v-model="form.startAt" type="datetime-local" />
         </div>
         <div class="field">
-          <label for="todo-end">结束时间</label>
+          <label for="todo-end">{{ t('todoForm.endLabel') }}</label>
           <input id="todo-end" v-model="form.endAt" type="datetime-local" />
         </div>
       </div>
       <p v-if="errors.schedule" class="field-error">{{ errors.schedule }}</p>
 
       <footer class="form-actions">
-        <button type="button" class="btn" :disabled="submitting" @click="emit('close')">取消</button>
+        <button type="button" class="btn" :disabled="submitting" @click="emit('close')">
+          {{ t('common.cancel') }}
+        </button>
         <button type="submit" class="btn btn-primary" :disabled="submitting">
           <span v-if="submitting" class="spinner"></span>
-          {{ submitting ? '保存中…' : isEdit ? '保存修改' : '创建待办' }}
+          {{ submitting ? t('common.saving') : isEdit ? t('todoForm.saveChanges') : t('todoForm.createSubmit') }}
         </button>
       </footer>
     </form>

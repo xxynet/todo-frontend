@@ -8,6 +8,7 @@ import { deleteTodo, listTodos, updateTodo } from '../api/todos'
 import { toast } from '../composables/toast'
 import { confirmDialog } from '../composables/confirm'
 import { parseApiDate } from '../utils/datetime'
+import { t, useI18n } from '../i18n'
 import TodoCard from '../components/TodoCard.vue'
 import TodoFormModal from '../components/TodoFormModal.vue'
 import AppSelect, { type AppSelectOption } from '../components/AppSelect.vue'
@@ -26,13 +27,15 @@ const PAGE_SIZE = 10
 type StatusFilter = 'all' | 'active' | 'done'
 type SortKey = 'created_desc' | 'created_asc' | 'schedule_asc' | 'schedule_desc' | 'title_asc'
 
-const sortOptions: AppSelectOption<SortKey>[] = [
-  { value: 'created_desc', label: '最新创建' },
-  { value: 'created_asc', label: '最早创建' },
-  { value: 'schedule_asc', label: '日程最早' },
-  { value: 'schedule_desc', label: '日程最晚' },
-  { value: 'title_asc', label: '标题 A–Z' },
-]
+const { locale } = useI18n()
+
+const sortOptions = computed<AppSelectOption<SortKey>[]>(() => [
+  { value: 'created_desc', label: t('todos.sort.createdDesc') },
+  { value: 'created_asc', label: t('todos.sort.createdAsc') },
+  { value: 'schedule_asc', label: t('todos.sort.scheduleAsc') },
+  { value: 'schedule_desc', label: t('todos.sort.scheduleDesc') },
+  { value: 'title_asc', label: t('todos.sort.titleAsc') },
+])
 
 const route = useRoute()
 
@@ -76,7 +79,7 @@ const visibleTodos = computed(() => {
       return (time(b.scheduled_start_at) ?? Number.NEGATIVE_INFINITY) - (time(a.scheduled_start_at) ?? Number.NEGATIVE_INFINITY)
     }
     if (sortKey.value === 'title_asc') {
-      return a.title.localeCompare(b.title, 'zh-CN')
+      return a.title.localeCompare(b.title, locale.value)
     }
     return (time(b.created_at) ?? 0) - (time(a.created_at) ?? 0)
   })
@@ -182,16 +185,16 @@ async function toggleCompleted(todo: Todo): Promise<void> {
 
 async function removeTodo(todo: Todo): Promise<void> {
   const confirmed = await confirmDialog({
-    title: '删除待办',
-    message: `确定删除「${todo.title}」吗？此操作无法撤销。`,
-    confirmText: '删除',
+    title: t('todos.deleteTitle'),
+    message: t('todos.deleteMessage', { title: todo.title }),
+    confirmText: t('common.delete'),
     danger: true,
   })
   if (!confirmed) return
   try {
     await deleteTodo(todo.id)
     todos.value = todos.value.filter((item) => item.id !== todo.id)
-    toast.success('待办已删除')
+    toast.success(t('todos.deleted'))
   } catch (error) {
     toast.error(getErrorMessage(error))
   }
@@ -201,7 +204,7 @@ async function removeTodo(todo: Todo): Promise<void> {
 <template>
   <div class="page todos-page">
     <aside class="todos-sidebar">
-      <h2 class="sidebar-title">分类</h2>
+      <h2 class="sidebar-title">{{ t('todos.categories') }}</h2>
       <nav class="sidebar-nav">
         <button
           type="button"
@@ -210,7 +213,7 @@ async function removeTodo(todo: Todo): Promise<void> {
           @click="categoryFilter = 'all'"
         >
           <Tickets class="icon sidebar-icon" />
-          全部待办
+          {{ t('todos.allTodos') }}
         </button>
         <button
           v-for="category in categories"
@@ -223,33 +226,35 @@ async function removeTodo(todo: Todo): Promise<void> {
           <Folder class="icon sidebar-icon" />
           {{ category.name }}
         </button>
-        <p v-if="!loading && categories.length === 0" class="sidebar-empty muted">暂无可访问的分类</p>
+        <p v-if="!loading && categories.length === 0" class="sidebar-empty muted">
+          {{ t('todos.categoriesEmpty') }}
+        </p>
       </nav>
-      <p class="sidebar-hint muted">仅显示您有权限访问的分类，可在「分类」页管理</p>
+      <p class="sidebar-hint muted">{{ t('todos.categoriesHint') }}</p>
     </aside>
 
     <section class="todos-main">
       <header class="todos-header">
         <div>
-          <h1>待办事项</h1>
-          <p class="muted">共 {{ visibleTodos.length }} 条匹配的待办</p>
+          <h1>{{ t('todos.title') }}</h1>
+          <p class="muted">{{ t('todos.count', { count: visibleTodos.length }) }}</p>
         </div>
         <button type="button" class="btn btn-primary" @click="openCreate">
           <Plus class="icon" />
-          新建待办
+          {{ t('todos.create') }}
         </button>
       </header>
 
       <div class="toolbar">
         <div class="segmented">
           <button type="button" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">
-            全部
+            {{ t('todos.filter.all') }}
           </button>
           <button type="button" :class="{ active: statusFilter === 'active' }" @click="statusFilter = 'active'">
-            进行中
+            {{ t('todos.filter.active') }}
           </button>
           <button type="button" :class="{ active: statusFilter === 'done' }" @click="statusFilter = 'done'">
-            已完成
+            {{ t('todos.filter.done') }}
           </button>
         </div>
         <div class="search-box">
@@ -258,28 +263,30 @@ async function removeTodo(todo: Todo): Promise<void> {
             v-model="searchQuery"
             type="search"
             class="search-input"
-            placeholder="搜索标题、描述、标签或分类…"
+            :placeholder="t('todos.searchPlaceholder')"
           />
         </div>
-        <AppSelect v-model="sortKey" class="sort-select" :options="sortOptions" aria-label="任务排序" />
+        <AppSelect v-model="sortKey" class="sort-select" :options="sortOptions" :aria-label="t('todos.sortAria')" />
         <button type="button" class="btn" :disabled="loading" @click="refreshAll">
           <Refresh class="icon" />
-          刷新
+          {{ t('todos.refresh') }}
         </button>
       </div>
 
       <div v-if="loading" class="empty-state">
         <span class="spinner spinner-lg"></span>
-        <p class="muted">加载中…</p>
+        <p class="muted">{{ t('common.loading') }}</p>
       </div>
 
       <div v-else-if="pageTodos.length === 0" class="empty-state card">
         <div class="empty-icon"><Tickets class="icon icon-xl" /></div>
-        <p class="empty-title">{{ visibleTodos.length === 0 ? '没有符合条件的待办' : '这一页没有待办' }}</p>
-        <p class="muted">换一个筛选条件，或创建一条新待办</p>
+        <p class="empty-title">
+          {{ visibleTodos.length === 0 ? t('todos.emptyFiltered') : t('todos.emptyPage') }}
+        </p>
+        <p class="muted">{{ t('todos.emptyHint') }}</p>
         <button type="button" class="btn btn-primary" @click="openCreate">
           <Plus class="icon" />
-          新建待办
+          {{ t('todos.create') }}
         </button>
       </div>
 
@@ -303,7 +310,7 @@ async function removeTodo(todo: Todo): Promise<void> {
           @click="page -= 1"
         >
           <ArrowLeft class="icon" />
-          上一页
+          {{ t('todos.prevPage') }}
         </button>
         <template v-for="item in pageButtons" :key="item.gap ? `gap-${item.page}` : `page-${item.page}`">
           <span v-if="item.gap" class="page-gap">…</span>
@@ -324,7 +331,7 @@ async function removeTodo(todo: Todo): Promise<void> {
           :disabled="page >= maxPage"
           @click="page += 1"
         >
-          下一页
+          {{ t('todos.nextPage') }}
           <ArrowRight class="icon" />
         </button>
       </footer>

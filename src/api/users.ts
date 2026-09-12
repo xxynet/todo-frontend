@@ -1,5 +1,6 @@
 import { apiRequest } from './client'
 import type { SetupStatus, User, UserRole } from './types'
+import { t } from '../i18n'
 
 export function getSetupStatus(): Promise<SetupStatus> {
   return apiRequest<SetupStatus>('/setup/status', { anonymous: true })
@@ -34,5 +35,5 @@ export function getUser(userId: string): Promise<User> {
 }
 
 export function formatRole(role: UserRole): string {
-  return role === 'admin' ? '管理员' : '普通用户'
+  return t(role === 'admin' ? 'role.admin' : 'role.user')
 }

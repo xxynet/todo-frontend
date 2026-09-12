@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Close } from '@element-plus/icons-vue'
+import { t } from '../i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -10,7 +11,7 @@ const props = withDefaults(
   }>(),
   {
     max: 20,
-    placeholder: '输入后回车添加',
+    placeholder: undefined,
   },
 )
 
@@ -30,15 +31,15 @@ function commit(): void {
   inputText.value = ''
   hint.value = ''
   if (name.length > 50) {
-    hint.value = '标签最长 50 个字符'
+    hint.value = t('tagInput.tooLong')
     return
   }
   if (props.modelValue.some((tag) => tag.toLowerCase() === name.toLowerCase())) {
-    hint.value = '标签已存在'
+    hint.value = t('tagInput.duplicate')
     return
   }
   if (props.modelValue.length >= props.max) {
-    hint.value = `最多添加 ${props.max} 个标签`
+    hint.value = t('tagInput.tooMany', { max: props.max })
     return
   }
   emit('update:modelValue', [...props.modelValue, name])
@@ -70,7 +71,12 @@ defineExpose({ focus: () => inputElement.value?.focus() })
   <div class="tag-input" @click="inputElement?.focus()">
     <span v-for="(tag, index) in modelValue" :key="tag" class="tag-chip">
       # {{ tag }}
-      <button type="button" class="tag-remove" :aria-label="`移除标签 ${tag}`" @click.stop="removeTag(index)">
+      <button
+        type="button"
+        class="tag-remove"
+        :aria-label="t('tagInput.removeAria', { tag })"
+        @click.stop="removeTag(index)"
+      >
         <Close class="icon" />
       </button>
     </span>
@@ -78,7 +84,7 @@ defineExpose({ focus: () => inputElement.value?.focus() })
       ref="inputElement"
       v-model="inputText"
       type="text"
-      :placeholder="modelValue.length === 0 ? placeholder : ''"
+      :placeholder="modelValue.length === 0 ? (placeholder || t('tagInput.placeholder')) : ''"
       @keydown="onKeydown"
       @blur="onBlur"
     />

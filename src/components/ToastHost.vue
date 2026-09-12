@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { useToasts, toast, type ToastKind } from '../composables/toast'
+import { t } from '../i18n'
 import {
   SuccessFilled,
   CircleCloseFilled,
@@ -35,7 +36,7 @@ function iconFor(kind: ToastKind): Component {
       >
         <component :is="iconFor(item.kind)" class="icon toast-icon" />
         <span class="toast-message">{{ item.message }}</span>
-        <button class="toast-close" aria-label="关闭提示" @click="toast.dismiss(item.id)">
+        <button class="toast-close" :aria-label="t('common.closeNotification')" @click="toast.dismiss(item.id)">
           <Close class="icon" />
         </button>
       </div>

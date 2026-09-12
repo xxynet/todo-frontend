@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends string | number">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { ArrowDown, Check } from '@element-plus/icons-vue'
+import { t } from '../i18n'
 
 export interface AppSelectOption<T extends string | number = string> {
   value: T
@@ -19,7 +20,7 @@ const props = withDefaults(
     block?: boolean
     ariaLabel?: string
   }>(),
-  { disabled: false, placeholder: '请选择', block: false, ariaLabel: undefined },
+  { disabled: false, block: false, ariaLabel: undefined },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [value: T] }>()
@@ -196,7 +197,7 @@ onBeforeUnmount(uninstallOutsideHandler)
       @click="toggle"
     >
       <span class="select-value" :class="{ 'is-placeholder': !selectedOption }">
-        {{ selectedOption?.label ?? placeholder }}
+        {{ selectedOption?.label ?? placeholder ?? t('common.pleaseSelect') }}
       </span>
       <ArrowDown class="select-chevron" />
     </button>

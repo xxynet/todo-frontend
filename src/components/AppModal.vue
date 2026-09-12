@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, watch } from 'vue'
 import { Close } from '@element-plus/icons-vue'
+import { t } from '../i18n'
 
 const props = defineProps<{
   open: boolean
@@ -43,7 +44,7 @@ onBeforeUnmount(() => {
       <div class="modal-card" role="dialog" aria-modal="true" :style="{ maxWidth: width || '520px' }">
         <header class="modal-header">
           <h3>{{ title }}</h3>
-          <button class="modal-close" aria-label="关闭" @click="emit('close')">
+          <button class="modal-close" :aria-label="t('common.close')" @click="emit('close')">
             <Close class="icon" />
           </button>
         </header>

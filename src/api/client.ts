@@ -1,5 +1,6 @@
 import { useSession } from '../stores/session'
 import { useBackend } from '../stores/backend'
+import { t } from '../i18n'
 
 /** 带 HTTP 状态码的接口错误；status 为 0 表示网络不可达 */
 export class ApiError extends Error {
@@ -15,7 +16,7 @@ export class ApiError extends Error {
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
-  return '操作失败，请稍后重试'
+  return t('errors.generic')
 }
 
 type QueryValue = string | number | boolean | null | undefined
@@ -60,11 +61,11 @@ function extractDetail(payload: unknown, response: Response): string {
         }
         return String(item)
       })
-      const joined = parts.join('；')
+      const joined = parts.join(t('errors.detailSeparator'))
       if (joined) return joined
     }
   }
-  return `请求失败（HTTP ${response.status}）`
+  return t('errors.requestFailed', { status: response.status })
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -82,7 +83,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     })
   } catch {
-    throw new ApiError(0, '无法连接后端。请检查地址是否正确、服务是否启动，以及后端是否已启用 CORS。')
+    throw new ApiError(0, t('errors.network'))
   }
 
   if (response.status === 204) return undefined as T

@@ -8,6 +8,7 @@ import { useSession } from '../stores/session'
 import { toast } from '../composables/toast'
 import { confirmDialog } from '../composables/confirm'
 import { formatDateTime } from '../utils/datetime'
+import { t, useI18n } from '../i18n'
 import CategoryModal from '../components/CategoryModal.vue'
 import PermissionModal from '../components/PermissionModal.vue'
 import {
@@ -21,6 +22,7 @@ import {
 
 const router = useRouter()
 const session = useSession()
+const { locale } = useI18n()
 
 const isAdmin = computed(() => session.user.value?.role === 'admin')
 
@@ -46,6 +48,10 @@ async function load(): Promise<void> {
   }
 }
 
+function sortCategories(): void {
+  categories.value.sort((a, b) => a.name.localeCompare(b.name, locale.value))
+}
+
 function openCreate(): void {
   editingCategory.value = null
   editorOpen.value = true
@@ -60,26 +66,25 @@ function onSaved(saved: Category): void {
   const index = categories.value.findIndex((item) => item.id === saved.id)
   if (index >= 0) {
     categories.value.splice(index, 1, saved)
-    categories.value.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'))
   } else {
     categories.value.push(saved)
-    categories.value.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'))
   }
+  sortCategories()
   editorOpen.value = false
 }
 
 async function removeCategory(category: Category): Promise<void> {
   const confirmed = await confirmDialog({
-    title: '删除分类',
-    message: `确定删除分类「${category.name}」吗？该分类下的待办将变为未分类（仍归原所有者），相关协作权限会一并移除。`,
-    confirmText: '删除',
+    title: t('categories.deleteTitle'),
+    message: t('categories.deleteMessage', { name: category.name }),
+    confirmText: t('common.delete'),
     danger: true,
   })
   if (!confirmed) return
   try {
     await deleteCategory(category.id)
     categories.value = categories.value.filter((item) => item.id !== category.id)
-    toast.success('分类已删除')
+    toast.success(t('categories.deleted'))
   } catch (error) {
     toast.error(getErrorMessage(error))
   }
@@ -99,34 +104,30 @@ function viewTodos(category: Category): void {
   <div class="page categories-page">
     <header class="todos-header">
       <div>
-        <h1>分类管理</h1>
+        <h1>{{ t('categories.title') }}</h1>
         <p class="muted">
-          {{
-            isAdmin
-              ? '管理员可以创建分类、重命名、删除，并管理各分类的协作权限'
-              : '以下是通过协作权限与您共享的分类（仅管理员可创建分类）'
-          }}
+          {{ isAdmin ? t('categories.subtitleAdmin') : t('categories.subtitleUser') }}
         </p>
       </div>
       <button v-if="isAdmin" type="button" class="btn btn-primary" @click="openCreate">
         <Plus class="icon" />
-        新建分类
+        {{ t('categories.create') }}
       </button>
     </header>
 
     <div v-if="loading" class="empty-state">
       <span class="spinner spinner-lg"></span>
-      <p class="muted">加载中…</p>
+      <p class="muted">{{ t('common.loading') }}</p>
     </div>
 
     <div v-else-if="categories.length === 0" class="empty-state card">
       <div class="empty-icon"><FolderOpened class="icon icon-xl" /></div>
-      <p class="empty-title">还没有可访问的分类</p>
-      <p v-if="isAdmin" class="muted">创建一个分类，即可在其中整理共享待办</p>
-      <p v-else class="muted">请联系管理员为您授权分类访问</p>
+      <p class="empty-title">{{ t('categories.emptyTitle') }}</p>
+      <p v-if="isAdmin" class="muted">{{ t('categories.emptyAdminHint') }}</p>
+      <p v-else class="muted">{{ t('categories.emptyUserHint') }}</p>
       <button v-if="isAdmin" type="button" class="btn btn-primary" @click="openCreate">
         <Plus class="icon" />
-        新建分类
+        {{ t('categories.create') }}
       </button>
     </div>
 
@@ -135,26 +136,26 @@ function viewTodos(category: Category): void {
         <div class="category-info">
           <h3 class="category-name">{{ category.name }}</h3>
           <p class="muted">
-            分类 #{{ category.id }} · 创建于 {{ formatDateTime(category.created_at) }}
+            {{ t('categories.meta', { id: category.id, time: formatDateTime(category.created_at) }) }}
           </p>
         </div>
         <div class="category-actions">
           <button type="button" class="btn btn-sm" @click="viewTodos(category)">
             <View class="icon" />
-            查看待办
+            {{ t('categories.viewTodos') }}
           </button>
           <template v-if="isAdmin">
             <button type="button" class="btn btn-sm" @click="openPermissions(category)">
               <User class="icon" />
-              协作权限
+              {{ t('categories.permissions') }}
             </button>
             <button type="button" class="btn btn-sm" @click="openRename(category)">
               <EditPen class="icon" />
-              重命名
+              {{ t('categories.rename') }}
             </button>
             <button type="button" class="btn btn-sm btn-danger-outline" @click="removeCategory(category)">
               <Delete class="icon" />
-              删除
+              {{ t('categories.delete') }}
             </button>
           </template>
         </div>

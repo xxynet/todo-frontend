@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 /** 解析后端返回的时间字符串。SQLite 可能返回不带时区的字符串；
  *  前端始终以 UTC 发送时间，因此无时区标记时按 UTC 解析。 */
 export function parseApiDate(value: string | null | undefined): Date | null {
@@ -50,10 +52,10 @@ function dayLabel(date: Date): string {
   const now = new Date()
   const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
   const diffDays = Math.round((startOf(date) - startOf(now)) / 86_400_000)
-  if (diffDays === 0) return '今天'
-  if (diffDays === 1) return '明天'
-  if (diffDays === -1) return '昨天'
-  return `${date.getMonth() + 1}月${date.getDate()}日`
+  if (diffDays === 0) return t('time.today')
+  if (diffDays === 1) return t('time.tomorrow')
+  if (diffDays === -1) return t('time.yesterday')
+  return t('time.monthDay', { month: date.getMonth() + 1, day: date.getDate() })
 }
 
 function timeLabel(date: Date): string {
@@ -73,7 +75,7 @@ export function formatSchedule(
     start.getFullYear() === end.getFullYear() &&
     start.getMonth() === end.getMonth() &&
     start.getDate() === end.getDate()
-  if (end === null) return `${dayLabel(start)} ${timeLabel(start)} 开始`
+  if (end === null) return t('time.startsAt', { time: `${dayLabel(start)} ${timeLabel(start)}` })
   if (sameDay) return `${dayLabel(start)} ${timeLabel(start)} ~ ${timeLabel(end)}`
   return `${dayLabel(start)} ${timeLabel(start)} ~ ${dayLabel(end)} ${timeLabel(end)}`
 }
