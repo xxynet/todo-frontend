@@ -14,6 +14,16 @@ export interface SetupStatus {
   admin_provisioned: boolean
 }
 
+export interface ActivityDay {
+  /** 本地日历日 YYYY-MM-DD */
+  date: string
+  count: number
+}
+
+export interface UserActivity {
+  days: ActivityDay[]
+}
+
 export interface LoginResponse {
   access_token: string
   token_type: 'bearer'

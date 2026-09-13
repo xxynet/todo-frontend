@@ -1,15 +1,28 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { getErrorMessage } from '../api/client'
-import { updateMe } from '../api/users'
+import { getMyActivity, updateMe } from '../api/users'
+import type { ActivityDay } from '../api/types'
 import { useSession } from '../stores/session'
 import { toast } from '../composables/toast'
 import { formatDateTime, parseApiDate } from '../utils/datetime'
 import { t } from '../i18n'
+import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
 const session = useSession()
 
 const user = computed(() => session.user.value)
+
+const activity = ref<ActivityDay[] | null>(null)
+const activityFailed = ref(false)
+
+onMounted(async () => {
+  try {
+    activity.value = (await getMyActivity()).days
+  } catch {
+    activityFailed.value = true
+  }
+})
 
 const avatarText = computed(() => {
   const nickname = user.value?.nickname ?? ''
@@ -128,6 +141,12 @@ async function savePassword(): Promise<void> {
             <dd>{{ tokenExpiresAt }}</dd>
           </div>
         </dl>
+      </section>
+
+      <ActivityHeatmap v-if="activity" :days="activity" />
+      <section v-else class="card profile-section">
+        <h3>{{ t('profile.heatmap.title') }}</h3>
+        <p class="muted">{{ activityFailed ? t('profile.heatmap.loadFailed') : t('common.loading') }}</p>
       </section>
 
       <section class="card profile-section">
