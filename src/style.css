@@ -244,6 +244,9 @@ a {
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 7px 14px;
   border-radius: 999px;
   color: var(--text-secondary);
@@ -2012,7 +2015,22 @@ a {
     padding: 7px 10px;
   }
 
+  /* 小屏只保留图标，文字通过 aria-label 保留可访问名称 */
+  .nav-link .nav-label {
+    display: none;
+  }
+
   .user-name {
+    display: none;
+  }
+
+  /* 小屏账户按钮只保留头像 */
+  .user-chip {
+    padding: 4px;
+  }
+
+  .user-chip .chip,
+  .user-chip .user-menu-chevron {
     display: none;
   }
 

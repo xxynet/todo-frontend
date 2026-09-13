@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue'
+import type { Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Checked } from '@element-plus/icons-vue'
+import { Checked, Folder, List, User } from '@element-plus/icons-vue'
 import { useSession } from './stores/session'
 import { toast } from './composables/toast'
 import { t, useI18n } from './i18n'
@@ -39,10 +40,10 @@ watchEffect(() => {
 
 const showChrome = computed(() => route.meta.chrome === true && session.isAuthenticated.value)
 
-const navItems = computed(() => [
-  { path: '/todos', label: t('nav.todos') },
-  { path: '/categories', label: t('nav.categories') },
-  { path: '/profile', label: t('nav.profile') },
+const navItems = computed<{ path: string; label: string; icon: Component }[]>(() => [
+  { path: '/todos', label: t('nav.todos'), icon: List },
+  { path: '/categories', label: t('nav.categories'), icon: Folder },
+  { path: '/profile', label: t('nav.profile'), icon: User },
 ])
 </script>
 
@@ -62,8 +63,10 @@ const navItems = computed(() => [
             :to="item.path"
             class="nav-link"
             active-class="active"
+            :aria-label="item.label"
           >
-            {{ item.label }}
+            <component :is="item.icon" class="icon" />
+            <span class="nav-label">{{ item.label }}</span>
           </RouterLink>
         </nav>
 
