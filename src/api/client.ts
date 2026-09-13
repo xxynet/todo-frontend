@@ -1,6 +1,7 @@
 import { useSession } from '../stores/session'
 import { useBackend } from '../stores/backend'
 import { t } from '../i18n'
+import type { LoginResponse } from './types'
 
 /** 带 HTTP 状态码的接口错误；status 为 0 表示网络不可达 */
 export class ApiError extends Error {
@@ -68,7 +69,7 @@ function extractDetail(payload: unknown, response: Response): string {
   return t('errors.requestFailed', { status: response.status })
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function executeRequest<T>(path: string, options: RequestOptions): Promise<T> {
   const session = useSession()
   const headers: Record<string, string> = {}
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
@@ -98,10 +99,53 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
   }
 
-  if (!response.ok) {
-    if (response.status === 401 && !options.anonymous) session.handleUnauthorized()
-    throw new ApiError(response.status, extractDetail(payload, response))
-  }
-
+  if (!response.ok) throw new ApiError(response.status, extractDetail(payload, response))
   return (payload ?? undefined) as T
+}
+
+/** 并发的多个 401 共享同一次刷新，避免刷新令牌被重复消费 */
+let refreshInFlight: Promise<boolean> | null = null
+
+function refreshSession(): Promise<boolean> {
+  refreshInFlight ??= (async () => {
+    const session = useSession()
+    const refreshToken = session.refreshToken.value
+    if (!refreshToken) return false
+    try {
+      const result = await executeRequest<LoginResponse>('/auth/refresh', {
+        method: 'POST',
+        body: { refresh_token: refreshToken },
+        anonymous: true,
+      })
+      session.setTokens(result.access_token, result.expires_at, result.refresh_token, result.refresh_expires_at)
+      return true
+    } catch {
+      // 刷新令牌可能已被其他标签页轮换：若存储中已有新令牌则采纳，避免误登出
+      return session.adoptStoredTokensIfChanged()
+    }
+  })().finally(() => {
+    refreshInFlight = null
+  })
+  return refreshInFlight
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (options.anonymous) return executeRequest<T>(path, options)
+
+  try {
+    return await executeRequest<T>(path, options)
+  } catch (error) {
+    if ((error as ApiError).status !== 401) throw error
+
+    if (!(await refreshSession())) {
+      useSession().handleUnauthorized()
+      throw error
+    }
+    try {
+      return await executeRequest<T>(path, options)
+    } catch (retryError) {
+      if ((retryError as ApiError).status === 401) useSession().handleUnauthorized()
+      throw retryError
+    }
+  }
 }

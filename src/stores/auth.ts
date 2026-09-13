@@ -7,7 +7,13 @@ export function useAuth() {
 
   async function login(userId: string, password: string): Promise<void> {
     const result = await loginRequest({ user_id: userId.trim(), password })
-    session.setSession(result.access_token, result.expires_at, result.user)
+    session.setSession(
+      result.access_token,
+      result.expires_at,
+      result.refresh_token,
+      result.refresh_expires_at,
+      result.user,
+    )
   }
 
   async function logout(): Promise<void> {
