@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Checked, SwitchButton } from '@element-plus/icons-vue'
+import { Checked } from '@element-plus/icons-vue'
 import { useSession } from './stores/session'
-import { useAuth } from './stores/auth'
 import { toast } from './composables/toast'
-import { getErrorMessage } from './api/client'
 import { t, useI18n } from './i18n'
 import ToastHost from './components/ToastHost.vue'
 import ConfirmHost from './components/ConfirmHost.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
 import LocaleSelect from './components/LocaleSelect.vue'
+import UserMenu from './components/UserMenu.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,27 +39,11 @@ watchEffect(() => {
 
 const showChrome = computed(() => route.meta.chrome === true && session.isAuthenticated.value)
 
-const avatarText = computed(() => {
-  const nickname = session.user.value?.nickname ?? ''
-  return nickname ? nickname.slice(0, 1).toUpperCase() : '?'
-})
-
 const navItems = computed(() => [
   { path: '/todos', label: t('nav.todos') },
   { path: '/categories', label: t('nav.categories') },
   { path: '/profile', label: t('nav.profile') },
 ])
-
-async function logout(): Promise<void> {
-  try {
-    await useAuth().logout()
-    toast.success(t('common.loggedOut'))
-  } catch (error) {
-    toast.error(getErrorMessage(error))
-    session.clear()
-  }
-  await router.replace('/login')
-}
 </script>
 
 <template>
@@ -87,17 +70,7 @@ async function logout(): Promise<void> {
         <div class="header-user">
           <ThemeToggle />
           <LocaleSelect />
-          <RouterLink to="/profile" class="user-chip" :title="t('nav.profile')">
-            <span class="avatar avatar-sm">{{ avatarText }}</span>
-            <span class="user-name">{{ session.user.value?.nickname }}</span>
-            <span v-if="session.user.value?.role === 'admin'" class="chip chip-role-edit">
-              {{ t('role.admin') }}
-            </span>
-          </RouterLink>
-          <button type="button" class="btn btn-sm" @click="logout">
-            <SwitchButton class="icon" />
-            {{ t('nav.logout') }}
-          </button>
+          <UserMenu />
         </div>
       </div>
     </header>

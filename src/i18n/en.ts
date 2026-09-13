@@ -8,6 +8,7 @@ export const en: typeof zhCN = {
   'nav.categories': 'Categories',
   'nav.profile': 'Profile',
   'nav.logout': 'Log out',
+  'nav.account': 'Account menu',
   'theme.toLight': 'Switch to light mode',
   'theme.toDark': 'Switch to dark mode',
   'theme.aria': 'Theme',
@@ -219,11 +220,6 @@ export const en: typeof zhCN = {
   'profile.passwordConfirmLabel': 'Confirm new password',
   'profile.passwordSubmit': 'Change password',
   'profile.passwordUpdated': 'Password changed. Use your new password next time you sign in.',
-  'profile.sessionTitle': 'Session',
-  'profile.sessionHint': 'Signing out returns to the login page and requires your password again.',
-  'profile.signOut': 'Sign out',
-  'profile.signOutTitle': 'Sign out',
-  'profile.signOutMessage': 'Sign out of the current account?',
 
   // Tag input
   'tagInput.placeholder': 'Type and press Enter to add',

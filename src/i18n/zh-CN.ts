@@ -5,7 +5,8 @@ export const zhCN = {
   'nav.todos': '待办事项',
   'nav.categories': '分类',
   'nav.profile': '个人中心',
-  'nav.logout': '退出',
+  'nav.logout': '退出登录',
+  'nav.account': '账户菜单',
   'theme.toLight': '切换到浅色模式',
   'theme.toDark': '切换到深色模式',
   'theme.aria': '主题',
@@ -217,11 +218,6 @@ export const zhCN = {
   'profile.passwordConfirmLabel': '确认新密码',
   'profile.passwordSubmit': '修改密码',
   'profile.passwordUpdated': '密码已修改，下次登录请使用新密码',
-  'profile.sessionTitle': '会话',
-  'profile.sessionHint': '退出后将返回登录页，需要重新输入密码。',
-  'profile.signOut': '退出登录',
-  'profile.signOutTitle': '退出登录',
-  'profile.signOutMessage': '确定退出当前账号吗？',
 
   // 标签输入
   'tagInput.placeholder': '输入后回车添加',

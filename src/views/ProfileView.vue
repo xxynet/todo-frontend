@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { getErrorMessage } from '../api/client'
 import { updateMe } from '../api/users'
 import { useSession } from '../stores/session'
-import { useAuth } from '../stores/auth'
 import { toast } from '../composables/toast'
-import { confirmDialog } from '../composables/confirm'
 import { formatDateTime, parseApiDate } from '../utils/datetime'
 import { t } from '../i18n'
-import { SwitchButton } from '@element-plus/icons-vue'
 
-const router = useRouter()
 const session = useSession()
-const auth = useAuth()
 
 const user = computed(() => session.user.value)
 
@@ -96,19 +90,6 @@ async function savePassword(): Promise<void> {
   } finally {
     passwordSaving.value = false
   }
-}
-
-async function logout(): Promise<void> {
-  const confirmed = await confirmDialog({
-    title: t('profile.signOutTitle'),
-    message: t('profile.signOutMessage'),
-    confirmText: t('profile.signOut'),
-    danger: true,
-  })
-  if (!confirmed) return
-  await auth.logout()
-  toast.success(t('common.loggedOut'))
-  await router.replace('/login')
 }
 </script>
 
@@ -204,15 +185,6 @@ async function logout(): Promise<void> {
             {{ passwordSaving ? t('common.saving') : t('profile.passwordSubmit') }}
           </button>
         </form>
-      </section>
-
-      <section class="card profile-section profile-danger">
-        <h3>{{ t('profile.sessionTitle') }}</h3>
-        <p class="muted">{{ t('profile.sessionHint') }}</p>
-        <button type="button" class="btn btn-danger" @click="logout">
-          <SwitchButton class="icon" />
-          {{ t('profile.signOut') }}
-        </button>
       </section>
     </div>
   </div>
