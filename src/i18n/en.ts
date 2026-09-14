@@ -33,13 +33,13 @@ export const en: typeof zhCN = {
   'errors.requestFailed': 'Request failed (HTTP {status})',
   'errors.detailSeparator': '; ',
   'errors.sessionExpired': 'Your session has expired. Please sign in again.',
-  'backend.required': 'Enter the backend URL first',
   'backend.invalid': 'Invalid backend URL. Enter a complete URL.',
   'backend.protocol': 'The backend URL must start with http:// or https://',
 
   // Login page
   'auth.subtitle': 'Connect to your TODO API to manage tasks, schedules and category collaboration',
   'auth.backendUrl': 'Backend URL',
+  'auth.backendUrlHint': "Leave blank to use this site's backend.",
   'auth.checkConnection': 'Test connection',
   'auth.checking': 'Testing…',
   'auth.tab.login': 'Sign in',

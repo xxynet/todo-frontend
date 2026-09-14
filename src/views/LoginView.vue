@@ -52,9 +52,7 @@ onMounted(() => {
   if (typeof presetId === 'string' && presetId) {
     loginForm.userId = presetId
   }
-  if (backendInput.value.trim()) {
-    void checkConnection({ silent: true })
-  }
+  void checkConnection({ silent: true })
 })
 
 watch(mode, (value) => {
@@ -117,10 +115,6 @@ const bootstrapDisabled = () => connStatus.value !== 'ok' || adminProvisioned.va
 async function login(): Promise<void> {
   if (loggingIn.value) return
   loginError.value = ''
-  if (!backendInput.value.trim()) {
-    loginError.value = t('backend.required')
-    return
-  }
   if (!loginForm.userId.trim() || !loginForm.password) {
     loginError.value = t('auth.login.needCredentials')
     return
@@ -245,6 +239,7 @@ async function bootstrap(): Promise<void> {
             {{ connStatus === 'checking' ? t('auth.checking') : t('auth.checkConnection') }}
           </button>
         </div>
+        <p class="field-hint">{{ t('auth.backendUrlHint') }}</p>
         <p v-if="connStatus !== 'idle'" class="field-hint conn-hint" :class="{ 'conn-error': connStatus === 'error' }">
           <span class="status-dot" :class="connStatus"></span>
           {{ connMessage }}

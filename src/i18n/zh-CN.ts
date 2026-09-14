@@ -31,13 +31,13 @@ export const zhCN = {
   'errors.requestFailed': '请求失败（HTTP {status}）',
   'errors.detailSeparator': '；',
   'errors.sessionExpired': '登录状态已失效，请重新登录',
-  'backend.required': '请先填写后端地址',
   'backend.invalid': '后端地址格式不正确，请输入完整 URL',
   'backend.protocol': '后端地址必须以 http:// 或 https:// 开头',
 
   // 登录页
   'auth.subtitle': '连接你的 TODO API，管理任务、日程与分类协作',
   'auth.backendUrl': '后端地址',
+  'auth.backendUrlHint': '留空时使用当前站点的后端',
   'auth.checkConnection': '检测连接',
   'auth.checking': '检测中…',
   'auth.tab.login': '登录',

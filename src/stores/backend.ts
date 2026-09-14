@@ -5,10 +5,10 @@ const STORAGE_KEY = 'todo-frontend/backend'
 
 const state = reactive({ url: localStorage.getItem(STORAGE_KEY) ?? '' })
 
-/** 校验并规范化后端地址：必须 http(s) 协议，去掉末尾斜杠 */
+/** 校验并规范化后端地址；留空时使用当前站点的同源 API。 */
 export function normalizeBackendUrl(value: string): string {
   const trimmed = value.trim()
-  if (!trimmed) throw new Error(t('backend.required'))
+  if (!trimmed) return ''
   let url: URL
   try {
     url = new URL(trimmed)
