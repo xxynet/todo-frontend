@@ -1,6 +1,6 @@
 # TODO 前端（Vue 3 + TypeScript + Vite）
 
-对接 [todo-api](../../Python/todo-api) 后端的多用户协作待办清单前端。所有交互均在页面内完成（弹窗、Toast、确认框），不使用浏览器的 `alert` / `confirm` / `prompt`。
+对接 [todo-api](https://github.com/xxynet/todo-api) 后端的多用户协作待办清单前端。所有交互均在页面内完成（弹窗、Toast、确认框），不使用浏览器的 `alert` / `confirm` / `prompt`。
 
 ## 功能
 
