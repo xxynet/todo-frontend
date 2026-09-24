@@ -243,6 +243,10 @@ a {
   flex: 1;
 }
 
+.mobile-nav {
+  display: none;
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
@@ -2007,17 +2011,77 @@ a {
     margin-top: 0;
   }
 
-  .app-nav {
-    gap: 0;
+  .app-main:not(.app-main-full) {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
   }
 
-  .nav-link {
-    padding: 7px 10px;
-  }
-
-  /* 小屏只保留图标，文字通过 aria-label 保留可访问名称 */
-  .nav-link .nav-label {
+  .app-nav--desktop {
     display: none;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 18px rgba(16, 24, 40, 0.08);
+  }
+
+  .mobile-nav .nav-link {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 5px 8px;
+    border-radius: 10px;
+  }
+
+  .mobile-nav .nav-link .icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-nav .nav-link .nav-label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11.5px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-user {
+    margin-left: auto;
+  }
+
+  @media (max-width: 480px) {
+    .app-container {
+      padding-right: 12px;
+      padding-left: 12px;
+    }
+
+    .header-inner {
+      gap: 12px;
+    }
+
+    .brand-name {
+      display: none;
+    }
+
+    .header-user {
+      gap: 6px;
+    }
   }
 
   .user-name {

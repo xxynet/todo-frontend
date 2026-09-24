@@ -56,7 +56,7 @@ const navItems = computed<{ path: string; label: string; icon: Component }[]>(()
           <span class="brand-name">TODO</span>
         </RouterLink>
 
-        <nav class="app-nav">
+        <nav class="app-nav app-nav--desktop">
           <RouterLink
             v-for="item in navItems"
             :key="item.path"
@@ -81,6 +81,20 @@ const navItems = computed<{ path: string; label: string; icon: Component }[]>(()
     <main class="app-main" :class="{ 'app-main-full': !showChrome }">
       <RouterView />
     </main>
+
+    <nav v-if="showChrome" class="mobile-nav">
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.path"
+        :to="item.path"
+        class="nav-link"
+        active-class="active"
+        :aria-label="item.label"
+      >
+        <component :is="item.icon" class="icon" />
+        <span class="nav-label">{{ item.label }}</span>
+      </RouterLink>
+    </nav>
 
     <ToastHost />
     <ConfirmHost />
